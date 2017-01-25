@@ -48,6 +48,7 @@ function downloadConfigs() {
         },
         (manifestContents, cb) => {
             let manifest = JSON.parse(manifestContents);
+            console.log(manifest);
         	mappingHash = _.find(manifest.mappings, { configVersion: majorVersion }).hash ;
         	if (mappingHash === configHash) {
         		return cb(new Error("Configs are up to date. No need to fetch new."), null);
