@@ -63,7 +63,7 @@ function downloadConfigs() {
         },
         (configs, cb) => {
             fs.writeFileSync(path.join(baseFolder, "config.hash"), mappingHash, 'utf8');
-            process.exit(0);
+            process.exit(1);
         }
     ], (err) => {
         if (err){
