@@ -1,0 +1,24 @@
+{
+  "name": "node-microservice-config",
+  "version": "1.0.0",
+  "description": "Accesses configs stored in the cloud",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GannettDigital/node-microservice-config.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GannettDigital/node-microservice-config/issues"
+  },
+  "homepage": "https://github.com/GannettDigital/node-microservice-config#readme",
+  "dependencies": {
+    "async": "^2.1.4",
+    "lodash": "^4.17.4",
+    "s3": "^4.4.0"
+  }
+}
