@@ -15,9 +15,9 @@ var configHash = "";
 var mappingHash; 
 var client;
 
-const s3Config = JSON.parse(fs.readFileSync(path.join(appName, "s3.json")));
+const s3Config = JSON.parse(fs.readFileSync(path.join(baseFolder, "s3.json")));
 
-function PollForNewConfigs {
+function PollForNewConfigs () {
     client = s3.createClient();
     pollForConfigs();
 }
@@ -26,7 +26,7 @@ let pollTimer;
 
 function pollForConfigs() {
     //When the app starts, try to download the configurations immediately.
-    downloadConfigs(cb);
+    downloadConfigs();
     if (pollTimer) {
         clearInterval(pollTimer);
     }
@@ -34,7 +34,7 @@ function pollForConfigs() {
 }
 
 //This function downloads and processes the configurations from our S3 bucket.
-function downloadConfigs(downloadCb) {
+function downloadConfigs() {
     const manifestJsonPath = path.join(baseFolder, 'manifest.json');
     const remoteManifestJson = path.posix.join(s3Config.path, 'manifest.json');
     const configsPath = path.join(baseFolder, 'config');
@@ -65,7 +65,6 @@ function downloadConfigs(downloadCb) {
 	        }
         }
     ], (err) => {
-        return downloadCb(null);
     });
 }
 
