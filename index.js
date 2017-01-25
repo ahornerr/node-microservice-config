@@ -11,28 +11,32 @@ const majorVersion = "v"+pkg.version.substr(0, pkg.version.indexOf("."));
 const appName = pkg.name;
 const _ = require("lodash");
 const async = require("async");
-var configHash = "";
+
+try {
+var configHash = fs.readFileSync(path.join(baseFolder, "config.hash"), 'utf8');
+} catch (err) {}
+
 var mappingHash; 
 var client;
 
 const s3Config = JSON.parse(fs.readFileSync(path.join(baseFolder, "s3.json")));
 
 function PollForNewConfigs () {
-    client = s3.createClient();
-    pollForConfigs();
-}
+    if (!_.isEmpty(s3Config.s3Options)) {
+        client = s3.createClient({s3Options: s3Config.s3Options});
+    } else {
+        client = s3.createClient();
+    }
 
-let pollTimer;
-
-function pollForConfigs() {
-    //When the app starts, try to download the configurations immediately.
     downloadConfigs();
     if (pollTimer) {
         clearInterval(pollTimer);
     }
     pollTimer = setInterval(downloadConfigs, 60000);
+
 }
 
+let pollTimer;
 //This function downloads and processes the configurations from our S3 bucket.
 function downloadConfigs() {
     const manifestJsonPath = path.join(baseFolder, 'manifest.json');
@@ -41,31 +45,30 @@ function downloadConfigs() {
     const remoteConfigs = path.posix.join(s3Config.path, majorVersion);
     return async.waterfall([
         (cb) => {
-        	return downloadS3File(manifestJsonPath, s3Config.bucket, remoteManifestJson, cb);
+            return downloadS3File(manifestJsonPath, s3Config.bucket, remoteManifestJson, cb);
         },
-        (unused, cb) => {
+        (cb) => {
             return fs.readFile(manifestJsonPath, 'utf8', cb);
         },
         (manifestContents, cb) => {
             let manifest = JSON.parse(manifestContents);
-            console.log(manifest);
-        	mappingHash = _.find(manifest.mappings, { configVersion: majorVersion }).hash ;
-        	if (mappingHash === configHash) {
-        		return cb(new Error("Configs are up to date. No need to fetch new."), null);
-        	}
-            return cb(null, null);
+            mappingHash = _.find(manifest.mappings, { configVersion: majorVersion }).hash ;
+            if (mappingHash === configHash) {
+               return; // Configs are up-to-date.
+            }
+            return cb(null);
         },
-        (unused, cb) => { 
-        	return downloadS3Dir(configsPath, s3Config.bucket, remoteConfigs, cb);
+        (cb) => { 
+            return downloadS3Dir(configsPath, s3Config.bucket, remoteConfigs, cb);
         },
         (configs, cb) => {
-        	if (!configHash){
-        		configHash = mappingHash; // Welcome back!
-        	}else{
-	        	process.exit(0); // Goodbye, world.
-	        }
+            fs.writeFileSync(path.join(baseFolder, "config.hash"), mappingHash, 'utf8');
+            process.exit(0);
         }
     ], (err) => {
+        if (err){
+            console.log(err);
+        }
     });
 }
 
