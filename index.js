@@ -62,8 +62,10 @@ function downloadConfigs() {
             return downloadS3Dir(configsPath, s3Config.bucket, remoteConfigs, cb);
         },
         (configs, cb) => {
-            fs.writeFileSync(path.join(baseFolder, "config.hash"), mappingHash, 'utf8');
-            process.exit(1);
+            fs.writeFile(path.join(baseFolder, "config.hash"), mappingHash, 'utf8', function(){
+                console.log("Bouncing server to finalize config change.");
+                process.exit(0);
+            });
         }
     ], (err) => {
         if (err){
