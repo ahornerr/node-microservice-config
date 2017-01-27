@@ -4,7 +4,7 @@ module.exports = {
 
 const s3 = require('s3');
 const path = require("path");
-const baseFolder = path.dirname(require.main.filename);
+const baseFolder = path.dirname(module.parent.filename);
 const fs = require("fs");
 const pkg = JSON.parse(fs.readFileSync(path.join(baseFolder, "package.json"), 'utf8'));
 const majorVersion = "v"+pkg.version.substr(0, pkg.version.indexOf("."));
