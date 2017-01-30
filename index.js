@@ -22,7 +22,6 @@ var client;
 const s3Config = JSON.parse(fs.readFileSync(path.join(baseFolder, "s3.json")));
 
 function PollForNewConfigs(done) {
-    console.log("polling for new configs");
     if (!_.isEmpty(s3Config.s3Options)) {
         client = s3.createClient({s3Options: s3Config.s3Options});
     } else {
@@ -40,7 +39,6 @@ function PollForNewConfigs(done) {
 let pollTimer;
 //This function downloads and processes the configurations from our S3 bucket.
 function downloadConfigs(done) {
-    console.log("downloading new configs");
     const manifestJsonPath = path.join(baseFolder, 'manifest.json');
     const remoteManifestJson = path.posix.join(s3Config.path, 'manifest.json');
     const configsPath = path.join(baseFolder, 'config');
@@ -56,7 +54,6 @@ function downloadConfigs(done) {
             let manifest = JSON.parse(manifestContents);
             mappingHash = _.find(manifest.mappings, { configVersion: majorVersion }).hash ;
             if (mappingHash === configHash) {
-                console.log("Configs are up to date");
                return done(); // Configs are up-to-date.
             }
             return cb(null);
@@ -65,13 +62,11 @@ function downloadConfigs(done) {
             return downloadS3Dir(configsPath, s3Config.bucket, remoteConfigs, cb);
         },
         (configs, cb) => {
-            console.log("Got configs");
             fs.writeFile(path.join(baseFolder, "config.hash"), mappingHash, 'utf8', function(){
                 if (done) {
-                    console.log("Had done callback, calling it now");
                     return done();
                 } else {
-                    console.log("Bouncing server to finalize config change.");
+                    console.log("Bouncing server to finalize config change. If you want to handle this differently, please add a callback to PollForNewConfigs.");
                     process.exit(0);
                 }
             });
