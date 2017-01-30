@@ -21,14 +21,14 @@ var client;
 
 const s3Config = JSON.parse(fs.readFileSync(path.join(baseFolder, "s3.json")));
 
-function PollForNewConfigs () {
+function PollForNewConfigs(done) {
     if (!_.isEmpty(s3Config.s3Options)) {
         client = s3.createClient({s3Options: s3Config.s3Options});
     } else {
         client = s3.createClient();
     }
 
-    downloadConfigs();
+    downloadConfigs(done);
     if (pollTimer) {
         clearInterval(pollTimer);
     }
@@ -38,7 +38,7 @@ function PollForNewConfigs () {
 
 let pollTimer;
 //This function downloads and processes the configurations from our S3 bucket.
-function downloadConfigs() {
+function downloadConfigs(done) {
     const manifestJsonPath = path.join(baseFolder, 'manifest.json');
     const remoteManifestJson = path.posix.join(s3Config.path, 'manifest.json');
     const configsPath = path.join(baseFolder, 'config');
@@ -54,7 +54,7 @@ function downloadConfigs() {
             let manifest = JSON.parse(manifestContents);
             mappingHash = _.find(manifest.mappings, { configVersion: majorVersion }).hash ;
             if (mappingHash === configHash) {
-               return; // Configs are up-to-date.
+               return done(); // Configs are up-to-date.
             }
             return cb(null);
         },
@@ -63,13 +63,22 @@ function downloadConfigs() {
         },
         (configs, cb) => {
             fs.writeFile(path.join(baseFolder, "config.hash"), mappingHash, 'utf8', function(){
-                console.log("Bouncing server to finalize config change.");
-                process.exit(0);
+                if (done) {
+                    return done();
+                } else {
+                    console.log("Bouncing server to finalize config change. If you want to handle this differently, please add a callback to PollForNewConfigs.");
+                    process.exit(0);
+                }
             });
         }
     ], (err) => {
+        if (err.message === 'http status code 404'){ // Ignore download errors if they haven't configured a config yet.
+            return done();
+        }
+
         if (err){
-            console.log(err);
+            console.error(err);
+            return done(err);
         }
     });
 }

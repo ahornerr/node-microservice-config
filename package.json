@@ -1,6 +1,6 @@
 {
   "name": "node-microservice-config",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Accesses configs stored in the cloud",
   "main": "index.js",
   "scripts": {
