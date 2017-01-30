@@ -21,14 +21,23 @@ var client;
 
 const s3Config = JSON.parse(fs.readFileSync(path.join(baseFolder, "s3.json")));
 
+<<<<<<< HEAD
 function PollForNewConfigs () {
+=======
+function PollForNewConfigs(done) {
+    console.log("polling for new configs");
+>>>>>>> 179f07c... Added a callback for polling for configs
     if (!_.isEmpty(s3Config.s3Options)) {
         client = s3.createClient({s3Options: s3Config.s3Options});
     } else {
         client = s3.createClient();
     }
 
+<<<<<<< HEAD
     downloadConfigs();
+=======
+    downloadConfigs(done);
+>>>>>>> 179f07c... Added a callback for polling for configs
     if (pollTimer) {
         clearInterval(pollTimer);
     }
@@ -38,7 +47,12 @@ function PollForNewConfigs () {
 
 let pollTimer;
 //This function downloads and processes the configurations from our S3 bucket.
+<<<<<<< HEAD
 function downloadConfigs() {
+=======
+function downloadConfigs(done) {
+    console.log("downloading new configs");
+>>>>>>> 179f07c... Added a callback for polling for configs
     const manifestJsonPath = path.join(baseFolder, 'manifest.json');
     const remoteManifestJson = path.posix.join(s3Config.path, 'manifest.json');
     const configsPath = path.join(baseFolder, 'config');
@@ -54,7 +68,12 @@ function downloadConfigs() {
             let manifest = JSON.parse(manifestContents);
             mappingHash = _.find(manifest.mappings, { configVersion: majorVersion }).hash ;
             if (mappingHash === configHash) {
+<<<<<<< HEAD
                return; // Configs are up-to-date.
+=======
+                console.log("Configs are up to date");
+               return done(); // Configs are up-to-date.
+>>>>>>> 179f07c... Added a callback for polling for configs
             }
             return cb(null);
         },
@@ -62,14 +81,31 @@ function downloadConfigs() {
             return downloadS3Dir(configsPath, s3Config.bucket, remoteConfigs, cb);
         },
         (configs, cb) => {
+<<<<<<< HEAD
             fs.writeFile(path.join(baseFolder, "config.hash"), mappingHash, 'utf8', function(){
                 console.log("Bouncing server to finalize config change.");
                 process.exit(0);
+=======
+            console.log("Got configs");
+            fs.writeFile(path.join(baseFolder, "config.hash"), mappingHash, 'utf8', function(){
+                if (done) {
+                    console.log("Had done callback, calling it now");
+                    return done();
+                } else {
+                    console.log("Bouncing server to finalize config change.");
+                    process.exit(0);
+                }
+>>>>>>> 179f07c... Added a callback for polling for configs
             });
         }
     ], (err) => {
         if (err){
+<<<<<<< HEAD
             console.log(err);
+=======
+            console.error(err);
+            return done(err);
+>>>>>>> 179f07c... Added a callback for polling for configs
         }
     });
 }
