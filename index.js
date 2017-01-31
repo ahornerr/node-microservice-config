@@ -34,7 +34,7 @@ function PollForNewConfigs(done) {
     if (pollTimer) {
         clearInterval(pollTimer);
     }
-    pollTimer = setInterval(downloadConfigs), 60000);
+    pollTimer = setInterval(downloadConfigs, 60000);
 
 }
 
