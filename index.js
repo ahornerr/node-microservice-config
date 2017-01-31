@@ -7,23 +7,25 @@ const path = require("path");
 const baseFolder = path.dirname(module.parent.filename);
 const fs = require("fs");
 const pkg = JSON.parse(fs.readFileSync(path.join(baseFolder, "package.json"), 'utf8'));
-const majorVersion = "v"+pkg.version.substr(0, pkg.version.indexOf("."));
+const majorVersion = "v" + pkg.version.substr(0, pkg.version.indexOf("."));
 const appName = pkg.name;
 const _ = require("lodash");
 const async = require("async");
 
 try {
-var configHash = fs.readFileSync(path.join(baseFolder, "config.hash"), 'utf8');
+    var configHash = fs.readFileSync(path.join(baseFolder, "config.hash"), 'utf8');
 } catch (err) {}
 
-var mappingHash; 
+var mappingHash;
 var client;
 
 const s3Config = JSON.parse(fs.readFileSync(path.join(baseFolder, "s3.json")));
 
 function PollForNewConfigs(done) {
     if (!_.isEmpty(s3Config.s3Options)) {
-        client = s3.createClient({s3Options: s3Config.s3Options});
+        client = s3.createClient({
+            s3Options: s3Config.s3Options
+        });
     } else {
         client = s3.createClient();
     }
@@ -32,7 +34,7 @@ function PollForNewConfigs(done) {
     if (pollTimer) {
         clearInterval(pollTimer);
     }
-    pollTimer = setInterval(downloadConfigs, 60000);
+    pollTimer = setInterval(downloadConfigs), 60000);
 
 }
 
@@ -52,17 +54,22 @@ function downloadConfigs(done) {
         },
         (manifestContents, cb) => {
             let manifest = JSON.parse(manifestContents);
-            mappingHash = _.find(manifest.mappings, { configVersion: majorVersion }).hash ;
+            mappingHash = _.find(manifest.mappings, {
+                configVersion: majorVersion
+            }).hash;
             if (mappingHash === configHash) {
-               return done(); // Configs are up-to-date.
+                if (done) {
+                    done(); // Configs are up-to-date.
+                }
+                return;
             }
             return cb(null);
         },
-        (cb) => { 
+        (cb) => {
             return downloadS3Dir(configsPath, s3Config.bucket, remoteConfigs, cb);
         },
         (configs, cb) => {
-            fs.writeFile(path.join(baseFolder, "config.hash"), mappingHash, 'utf8', function(){
+            fs.writeFile(path.join(baseFolder, "config.hash"), mappingHash, 'utf8', function() {
                 if (done) {
                     return done();
                 } else {
@@ -72,11 +79,11 @@ function downloadConfigs(done) {
             });
         }
     ], (err) => {
-        if (err.message === 'http status code 404'){ // Ignore download errors if they haven't configured a config yet.
+        if (err.message === 'http status code 404') { // Ignore download errors if they haven't configured a config yet.
             return done();
         }
 
-        if (err){
+        if (err) {
             console.error(err);
             return done(err);
         }
