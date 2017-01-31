@@ -79,13 +79,15 @@ function downloadConfigs(done) {
             });
         }
     ], (err) => {
-        if (err.message === 'http status code 404') { // Ignore download errors if they haven't configured a config yet.
-            return done();
-        }
+        if (done){
+            if (err.message === 'http status code 404') { // Ignore download errors if they haven't configured a config yet.
+                return done();
+            }
 
-        if (err) {
-            console.error(err);
-            return done(err);
+            if (err) {
+                console.error(err);
+                return done(err);
+            }
         }
     });
 }
