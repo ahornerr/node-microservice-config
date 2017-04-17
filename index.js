@@ -12,10 +12,6 @@ const appName = pkg.name;
 const _ = require("lodash");
 const async = require("async");
 
-try {
-    var configHash = fs.readFileSync(path.join(baseFolder, "config.hash"), 'utf8');
-} catch (err) {}
-
 var mappingHash;
 var client;
 
@@ -45,6 +41,10 @@ function downloadConfigs(done) {
     const remoteManifestJson = path.posix.join(s3Config.path, 'manifest.json');
     const configsPath = path.join(baseFolder, 'config');
     const remoteConfigs = path.posix.join(s3Config.path, majorVersion);
+    let configHash;
+    try {
+        configHash = fs.readFileSync(path.join(baseFolder, "config.hash"), 'utf8');
+    } catch (err) {}
     return async.waterfall([
         (cb) => {
             return downloadS3File(manifestJsonPath, s3Config.bucket, remoteManifestJson, cb);
