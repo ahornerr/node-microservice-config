@@ -15,6 +15,8 @@ const async = require("async");
 var mappingHash;
 var client;
 
+console.log("Base folder: " + baseFolder");
+
 const s3Config = JSON.parse(fs.readFileSync(path.join(baseFolder, "s3.json")));
 
 function PollForNewConfigs(done) {
@@ -39,11 +41,14 @@ let pollTimer;
 function downloadConfigs(done) {
     const manifestJsonPath = path.join(baseFolder, 'manifest.json');
     const remoteManifestJson = path.posix.join(s3Config.path, 'manifest.json');
+    console.log(`Manifest: ${remoteManifestJson} => ${manifestJsonPath}`);
     const configsPath = path.join(baseFolder, 'config');
     const remoteConfigs = path.posix.join(s3Config.path, majorVersion);
+    console.log(`Configs: ${remoteConfigs} => ${configsPath}`);
     let configHash;
     try {
         configHash = fs.readFileSync(path.join(baseFolder, "config.hash"), 'utf8');
+        console.log(`Config hash: ${configHash}`);
     } catch (err) {}
     return async.waterfall([
         (cb) => {
@@ -79,6 +84,7 @@ function downloadConfigs(done) {
             });
         }
     ], (err) => {
+        console.error(err);
         if (done){
             if (err.message === 'http status code 404') { // Ignore download errors if they haven't configured a config yet.
                 return done();
