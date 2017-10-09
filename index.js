@@ -15,7 +15,7 @@ const async = require("async");
 var mappingHash;
 var client;
 
-console.log("Base folder: " + baseFolder");
+console.log(`Base folder: ${baseFolder}`);
 
 const s3Config = JSON.parse(fs.readFileSync(path.join(baseFolder, "s3.json")));
 
